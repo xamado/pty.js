@@ -32,6 +32,7 @@
 #define WINPTY_API __declspec(dllimport)
 #endif
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,6 +49,16 @@ typedef struct winpty_s winpty_t;
  * This function creates a new agent process and connects to it.
  */
 WINPTY_API winpty_t *winpty_open(int cols, int rows);
+
+/**
+* Starts a new winpty instance with the given size.
+* 
+* This function creates a new agent process and connects to it. 
+* By using this method you are responsible for creating your own named
+* pipe server for communicating with the child process.
+* 
+*/
+WINPTY_API winpty_t *winpty_open_use_own_datapipe(const wchar_t *dataPipe, int cols, int rows);
 
 /*
  * Start a child process.  Either (but not both) of appname and cmdline may
@@ -75,12 +86,6 @@ WINPTY_API int winpty_start_process(winpty_t *pc,
 WINPTY_API int winpty_get_exit_code(winpty_t *pc);
 
 /*
- * Returns the process id of the process started with winpty_start_process,
- * or -1 none is available.
- */
-WINPTY_API int winpty_get_process_id(winpty_t *pc);
-
-/*
  * Returns an overlapped-mode pipe handle that can be read and written
  * like a Unix terminal.
  */
@@ -92,14 +97,9 @@ WINPTY_API HANDLE winpty_get_data_pipe(winpty_t *pc);
 WINPTY_API int winpty_set_size(winpty_t *pc, int cols, int rows);
 
 /*
- * Toggle the console mode. If in console mode, no terminal escape sequences are send.
- */
-WINPTY_API int winpty_set_console_mode(winpty_t *pc, int mode);
-
-/*
  * Closes the winpty.
  */
-WINPTY_API void winpty_close(winpty_t *pc);
+WINPTY_API void winpty_exit(winpty_t *pc);
 
 #ifdef __cplusplus
 }

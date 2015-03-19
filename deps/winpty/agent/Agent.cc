@@ -49,23 +49,6 @@ static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
     return FALSE;
 }
 
-static std::string wstringToUtf8String(const std::wstring &input)
-{
-    int mblen = WideCharToMultiByte(CP_UTF8, 0,
-                                    input.c_str(), input.size() + 1,
-                                    NULL, 0, NULL, NULL);
-    if (mblen <= 0) {
-        return std::string();
-    }
-    std::vector<char> tmp(mblen);
-    int mblen2 = WideCharToMultiByte(CP_UTF8, 0,
-                                     input.c_str(), input.size() + 1,
-                                     tmp.data(), tmp.size(),
-                                     NULL, NULL);
-    ASSERT(mblen2 == mblen);
-    return tmp.data();
-}
-
 Agent::Agent(LPCWSTR controlPipeName,
              LPCWSTR dataPipeName,
              int initialCols,
@@ -86,7 +69,6 @@ Agent::Agent(LPCWSTR controlPipeName,
                 Coord(initialCols, BUFFER_LINE_COUNT),
                 SmallRect(0, 0, initialCols, initialRows));
     m_console->setCursorPosition(Coord(0, 0));
-    m_console->setTitle(m_currentTitle);
 
     m_controlSocket = makeSocket(controlPipeName);
     m_dataSocket = makeSocket(dataPipeName);
@@ -202,17 +184,6 @@ void Agent::handlePacket(ReadBuffer &packet)
         ASSERT(packet.eof());
         result = m_childExitCode;
         break;
-    case AgentMsg::GetProcessId:
-        ASSERT(packet.eof());
-        if (m_childProcess == NULL)
-            result = -1;
-        else
-            result = GetProcessId(m_childProcess);
-        break;
-    case AgentMsg::SetConsoleMode:
-        m_terminal->setConsoleMode(packet.getInt());
-        result = 0;
-        break;
     default:
         trace("Unrecognized message, id:%d", type);
     }
@@ -221,7 +192,7 @@ void Agent::handlePacket(ReadBuffer &packet)
 
 int Agent::handleStartProcessPacket(ReadBuffer &packet)
 {
-    BOOL success;
+     BOOL success;
     ASSERT(m_childProcess == NULL);
 
     std::wstring program = packet.getWString();
@@ -241,7 +212,11 @@ int Agent::handleStartProcessPacket(ReadBuffer &packet)
         cmdlineArg = &cmdlineCopy[0];
     }
     LPCWSTR cwdArg = cwd.empty() ? NULL : cwd.c_str();
-    LPCWSTR envArg = env.empty() ? NULL : env.data();
+    LPCWSTR envArg = env.empty() ? NULL : env.c_str();
+
+    if(envArg != NULL && wcscmp(envArg, L"")) {
+       envArg = NULL;
+    }
 
     STARTUPINFO sui;
     PROCESS_INFORMATION pi;
@@ -399,14 +374,6 @@ void Agent::resizeWindow(int cols, int rows)
 void Agent::scrapeOutput()
 {
     freezeConsole();
-
-    std::wstring newTitle = m_console->title();
-    if (newTitle != m_currentTitle) {
-        std::string command = std::string("\x1b]0;") +
-                wstringToUtf8String(newTitle) + "\x07";
-        m_dataSocket->write(command.c_str());
-        m_currentTitle = newTitle;
-    }
 
     const Coord cursor = m_console->cursorPosition();
     const SmallRect windowRect = m_console->windowRect();

@@ -6,37 +6,28 @@
             'include_dirs' : [
                 'include',
             ],
+			'libraries' : [
+				'user32.lib'
+			],
             'defines' : [
                 'UNICODE',
                 '_UNICODE',
                 '_WIN32_WINNT=0x0501',
                 'NOMINMAX',
             ],
+            'msvs_disabled_warnings': [ 4267, 4244, 4530, 4267, 4800 ],
             'sources' : [
-                'agent/Agent.h',
                 'agent/Agent.cc',
-                'agent/AgentAssert.h',
                 'agent/AgentAssert.cc',
                 'agent/ConsoleInput.cc',
-                'agent/ConsoleInput.h',
-                'agent/Coord.h',
                 'agent/Coord.cc',
-                'agent/DsrSender.h',
                 'agent/EventLoop.cc',
-                'agent/NamedPipe.h',
                 'agent/NamedPipe.cc',
-                'agent/SmallRect.h',
                 'agent/SmallRect.cc',
-                'agent/Terminal.h',
                 'agent/Terminal.cc',
                 'agent/Win32Console.cc',
-                'agent/Win32Console.h',
                 'agent/main.cc',
-                'shared/AgentMsg.h',
-                'shared/Buffer.h',
-                'shared/DebugClient.h',
                 'shared/DebugClient.cc',
-                'shared/c99_snprintf.h',
             ],
         },
         {
@@ -45,6 +36,9 @@
             'include_dirs' : [
                 'include',
             ],
+			'libraries' : [
+				'user32.lib'
+			],
             'defines' : [
                 'UNICODE',
                 '_UNICODE',
@@ -52,14 +46,10 @@
                 'NOMINMAX',
                 'WINPTY',
             ],
+            'msvs_disabled_warnings': [ 4267, 4800 ],
             'sources' : [
-                'include/winpty.h',
                 'libwinpty/winpty.cc',
-                'shared/AgentMsg.h',
-                'shared/Buffer.h',
-                'shared/DebugClient.h',
                 'shared/DebugClient.cc',
-                'shared/c99_snprintf.h',
             ],
         },
     ],
